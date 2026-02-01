@@ -4,13 +4,43 @@
 - Target: Update ring with factory firmware to Bentley 0.2.12 customer image.
 - Dongle: Must be Pro. [BleuIO Pro](https://www.bleuio.com/bluetooth-low-energy-usb-ssd025.php#product-area)
 
+# Specify Firmware Path
+Set the firmware path and version if different than the default 0.2.12.
+
 # Find Target Name
 Use pyring-ORT to find the ring's name. You can see and connect to the ring but no normal functionality in pyring-ort after that. The factory firmware as a different api.
 
 # Config (advanced settings)
-Edit `config.json` before launch to change advanced DFU parameters (APP_ID, START_ADDRESS, BLOCK_SIZE, RING_TYPE, FORCE_FLAGS, REBOOT_WAIT). These are shown read-only in the app and used for `perform_dfu`. If the file is missing or invalid, doc defaults are used.
+Defaults should be okay. This settings are available just in case. Edit `config.json` before launch to change advanced DFU parameters (APP_ID, START_ADDRESS, BLOCK_SIZE, RING_TYPE, FORCE_FLAGS, REBOOT_WAIT). These are shown read-only in the app and used for `perform_dfu`. If the file is missing or invalid, doc defaults are used.
 
-# Run the app
+# Install and use uv
+
+[uv](https://docs.astral.sh/uv/) is a fast Python package installer and resolver. Use it to create a virtual environment and run the app:
+
+**Install uv** (if you don’t have it):
+
+```bash
+# Windows (cmd.exe) – use one of these:
+winget install --id=astral-sh.uv -e
+# or, if you have Python/pip:
+pip install uv
+
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+**Create a venv, install dependencies, and run the app:**
+
+```bash
+uv venv
+uv pip install -r requirements.txt
+uv run python app.py
+```
+
+(Add the package that provides `PlatformController`, e.g. `platform_controller` or `pyring`, to `requirements.txt` or install it with `uv pip install <package>` before running.)
+
+# Run the app (without uv)
+
 Install dependencies (including the package that provides `PlatformController`, e.g. `platform_controller` or `pyring`), then:
 
 ```bash

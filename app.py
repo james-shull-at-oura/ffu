@@ -12,10 +12,9 @@ try:
 except ImportError:
     PlatformController = None
 
-# Default firmware path relative to this script
-DEFAULT_FIRMWARE_PATH = (
-    Path(__file__).resolve().parent / "bentley_0_2_12" / "bentley-fw.signed.confirmed.bin"
-)
+# Default firmware path (relative to app directory); resolved to absolute when running DFU
+APP_DIR = Path(__file__).resolve().parent
+DEFAULT_FIRMWARE_PATH_REL = "bentley_0_2_12/bentley-fw.signed.confirmed.bin"
 
 # Default advanced DFU settings (per doc); overridden by config.json if present
 DEFAULT_ADVANCED = {
@@ -27,7 +26,15 @@ DEFAULT_ADVANCED = {
     "reboot_wait": 10,
 }
 
-CONFIG_PATH = Path(__file__).resolve().parent / "config.json"
+CONFIG_PATH = APP_DIR / "config.json"
+
+
+def resolve_firmware_path(path: str) -> str:
+    """If path is relative, resolve it against the app directory; return absolute path string."""
+    p = Path(path)
+    if not p.is_absolute():
+        p = APP_DIR / p
+    return str(p.resolve())
 
 
 def load_config():
@@ -57,7 +64,7 @@ class DfuApi:
         """Return default values for the form and advanced (read-only) from config.json."""
         cfg = load_config()
         return {
-            "firmware_path": str(DEFAULT_FIRMWARE_PATH),
+            "firmware_path": DEFAULT_FIRMWARE_PATH_REL,
             "version": "0.2.12",
             "target_name": "oura_",
             "hw_id": "BEM_04",
@@ -106,9 +113,10 @@ class DfuApi:
                 pc.dfu.set_progress_callback(progress_callback)
                 self._set_progress(0, 0, "Performing DFU…")
 
+                firmware_path_abs = resolve_firmware_path(firmware_path)
                 cfg = load_config()
                 success = pc.dfu.perform_dfu(
-                    firmware_path=firmware_path,
+                    firmware_path=firmware_path_abs,
                     app_id=cfg["app_id"],
                     version=version,
                     start_address=cfg["start_address"],
