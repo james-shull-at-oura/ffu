@@ -1,0 +1,2 @@
+pywebview>=4.0
+# Add the package that provides PlatformController and DfuManager (e.g. platform_controller or pyring)

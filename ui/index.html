@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Factory Firmware Updater</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 0;
+      padding: 1.25rem;
+      background: #1a1a1e;
+      color: #e4e4e7;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 0 1rem 0;
+      color: #fafafa;
+    }
+    label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #a1a1aa;
+      margin-bottom: 0.25rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.5rem 0.625rem;
+      font-size: 0.875rem;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      color: #e4e4e7;
+      margin-bottom: 0.75rem;
+    }
+    input:focus {
+      outline: none;
+      border-color: #71717a;
+    }
+    input:disabled { opacity: 0.6; cursor: not-allowed; }
+    section {
+      margin-bottom: 1.25rem;
+    }
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #71717a;
+      margin-bottom: 0.5rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover:not(:disabled) { background: #2563eb; }
+    button:disabled { background: #3f3f46; cursor: not-allowed; color: #71717a; }
+    .progress-area {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: #27272a;
+      border-radius: 6px;
+      border: 1px solid #3f3f46;
+    }
+    .progress-bar-wrap {
+      height: 8px;
+      background: #3f3f46;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #3b82f6;
+      border-radius: 4px;
+      transition: width 0.2s ease;
+    }
+    .progress-text {
+      font-size: 0.8125rem;
+      color: #a1a1aa;
+    }
+    .status {
+      font-size: 0.8125rem;
+      margin-top: 0.5rem;
+      padding: 0.375rem 0;
+      color: #a1a1aa;
+    }
+    .status.success { color: #22c55e; }
+    .status.error { color: #ef4444; }
+    .advanced {
+      font-size: 0.75rem;
+      color: #71717a;
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Factory Firmware Updater</h1>
+
+  <section>
+    <div class="section-title">Settings</div>
+    <label for="firmware_path">Firmware path</label>
+    <input type="text" id="firmware_path" placeholder="Path to .signed.confirmed.bin">
+
+    <label for="version">Version</label>
+    <input type="text" id="version" placeholder="e.g. 0.2.12">
+
+    <label for="target_name">Target name (BLE)</label>
+    <input type="text" id="target_name" placeholder="oura_">
+
+    <label for="hw_id">Hardware ID</label>
+    <input type="text" id="hw_id" placeholder="BEM_04">
+
+    <label for="timeout">Timeout (seconds)</label>
+    <input type="number" id="timeout" min="1" max="120" placeholder="10">
+  </section>
+
+  <section>
+    <div class="section-title">Advanced (read-only, from config.json)</div>
+    <div class="advanced" id="advanced-display">—</div>
+  </section>
+
+  <button id="update-btn">Update</button>
+
+  <div class="progress-area">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="progress-text" id="progress-text">—</div>
+  </div>
+
+  <div class="status" id="status">Idle</div>
+
+  <script>
+    (function () {
+      var updateBtn = document.getElementById('update-btn');
+      var progressBar = document.getElementById('progress-bar');
+      var progressText = document.getElementById('progress-text');
+      var statusEl = document.getElementById('status');
+      var pollingId = null;
+
+      function setStatus(text, successOrError) {
+        statusEl.textContent = text;
+        statusEl.classList.remove('success', 'error');
+        if (successOrError === 'success') statusEl.classList.add('success');
+        if (successOrError === 'error') statusEl.classList.add('error');
+      }
+
+      function stopPolling() {
+        if (pollingId !== null) {
+          clearInterval(pollingId);
+          pollingId = null;
+        }
+      }
+
+      function updateProgressFromApi() {
+        if (!window.pywebview || !window.pywebview.api) return;
+        window.pywebview.api.get_progress().then(function (p) {
+          progressBar.style.width = (p.percentage || 0) + '%';
+          progressText.textContent = p.message || '—';
+          if (p.total > 0) {
+            progressText.textContent = '[' + p.current + '/' + p.total + '] (' + (p.percentage || 0) + '%) ' + (p.message || '');
+          }
+        }).catch(function () {});
+      }
+
+      window.addEventListener('pywebviewready', function () {
+        window.pywebview.api.get_defaults().then(function (defaults) {
+          document.getElementById('firmware_path').value = defaults.firmware_path || '';
+          document.getElementById('version').value = defaults.version || '0.2.12';
+          document.getElementById('target_name').value = defaults.target_name || 'oura_';
+          document.getElementById('hw_id').value = defaults.hw_id || 'BEM_04';
+          document.getElementById('timeout').value = defaults.timeout !== undefined ? defaults.timeout : 10;
+          var a = defaults.advanced;
+          if (a) {
+            document.getElementById('advanced-display').textContent =
+              'APP_ID=' + a.app_id + ', START_ADDRESS=' + a.start_address + ', BLOCK_SIZE=' + a.block_size +
+              ', RING_TYPE=' + a.ring_type + ', FORCE_FLAGS=' + a.force_flags + ', REBOOT_WAIT=' + a.reboot_wait;
+          }
+        }).catch(function () {});
+
+        updateBtn.addEventListener('click', function () {
+          if (updateBtn.disabled) return;
+          var firmware_path = document.getElementById('firmware_path').value.trim();
+          var version = document.getElementById('version').value.trim();
+          var target_name = document.getElementById('target_name').value.trim();
+          var hw_id = document.getElementById('hw_id').value.trim();
+          var timeout = parseInt(document.getElementById('timeout').value, 10) || 10;
+
+          updateBtn.disabled = true;
+          progressBar.style.width = '0%';
+          progressText.textContent = 'Starting…';
+          setStatus('Connecting…');
+
+          pollingId = setInterval(updateProgressFromApi, 250);
+
+          window.pywebview.api.start_dfu(firmware_path, version, target_name, hw_id, timeout)
+            .then(function (success) {
+              stopPolling();
+              updateProgressFromApi();
+              updateBtn.disabled = false;
+              if (success) {
+                setStatus('Done', 'success');
+              } else {
+                setStatus('Failed', 'error');
+              }
+            })
+            .catch(function (err) {
+              stopPolling();
+              updateProgressFromApi();
+              updateBtn.disabled = false;
+              setStatus('Failed: ' + (err.message || String(err)), 'error');
+            });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "app_id": 1,
+  "start_address": 0,
+  "block_size": 512,
+  "ring_type": 8,
+  "force_flags": 0,
+  "reboot_wait": 10
+}

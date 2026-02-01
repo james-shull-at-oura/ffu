@@ -1,0 +1,73 @@
+DFU Procedure Document v1.0
+
+Firmware DFU file (.signed.confirmed.bin): factory-fw.signed.confirmed.bin
+
+DFU can be performed over UART or BLE. This document will focus on BLE. The only difference is the PlatformController setup.
+
+0. Hardware
+
+  - BleuIO Pro Dongle
+  --> Note: the closer the dongle can be to the flex the better.
+
+1. Setup PlatformController and Connect
+
+  a. BLE Example:
+     
+     pc = PlatformController(hw_id="BEM_04", client_type="ble")
+
+     # Next call will attempt to connect over BLE
+     pc.configure(target_name="oura_", timeout=10)
+
+2. Progress Callback
+
+  Use progress callback to view block transfer progress.
+
+  # Example progress callback
+  def progress_callback(current: int, total: int, message: str):
+    """Progress callback for DFU operations."""
+    percentage = (current / total) * 100 if total > 0 else 0
+    print(f"[{current}/{total}] ({percentage:.1f}%) {message}")
+
+  # In order to monitor progress, can setup a progress callback
+  pc.dfu.set_progress_callback(progress_callback)
+
+
+2. Use DfuManager (pc.dfu)
+
+  a. Example settings
+      
+      FIRMWARE_PATH=/path/to/factory-fw.signed.confirmed.bin
+      VERSION=99.2.5
+
+      # The following don't need to change at the DFU station
+      APP_ID=1 # APP ID will always be 1 for factory firmware DFUs
+      START_ADDRESS=0 # Always set start_address to 0
+      BLOCK_SIZE=512 # No need to change
+      RING_TYPE=8 # Always use 8 for Bentley
+      FORCE_FLAGS=0
+      REBOOT_WAIT=10
+
+
+  a. Perform DFU
+
+    # Recommended to use progress callback above to monitor progress
+    success = pc.dfu.perform_dfu(
+        firmware_path=FIRMWARE_PATH,
+        app_id=APP_ID,
+        version=VERSION,
+        start_address=START_ADDRESS,
+        block_size=BLOCK_SIZE,
+        ring_type=RING_TYPE,
+        force_flags=FORCE_FLAGS,
+        reboot_wait=REBOOT_WAIT,
+    )
+
+    if success:
+        print("\n✓ DFU completed successfully!")
+        return True
+    else:
+        print("\n✗ DFU failed")
+        return False
+
+Will send more information on failure cases. For now, re-running pc.dfu.perform_dfu again will restart the process.
+
