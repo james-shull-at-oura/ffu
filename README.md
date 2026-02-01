@@ -1,5 +1,7 @@
 # Factory Firmware Updater
 
+![gui screenshot](ui/ui.png)
+
 # Assumptions
 - Target: Update ring with factory firmware to Bentley 0.2.12 customer image.
 - Dongle: Must be Pro. [BleuIO Pro](https://www.bleuio.com/bluetooth-low-energy-usb-ssd025.php#product-area)

@@ -67,7 +67,7 @@ class DfuApi:
             "firmware_path": DEFAULT_FIRMWARE_PATH_REL,
             "version": "0.2.12",
             "target_name": "oura_",
-            "hw_id": "BEM_04",
+            "hw_id": "BEN_04",
             "timeout": 10,
             "advanced": cfg,
         }
