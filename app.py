@@ -180,7 +180,7 @@ def main():
         url=url,
         js_api=api,
         width=520,
-        height=560,
+        height=740,
     )
     webview.start(debug=False)
 

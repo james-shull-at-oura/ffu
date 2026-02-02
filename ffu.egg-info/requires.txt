@@ -1,0 +1,2 @@
+pywebview>=4.0
+oura_message_client @ git+https://github.com/jouzen/celebrimbor.git@main#subdirectory=oura_message_client

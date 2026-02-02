@@ -1,0 +1,16 @@
+[project]
+name = "ffu"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pywebview>=4.0",
+    "oura_message_client @ git+https://github.com/jouzen/celebrimbor.git@main#subdirectory=oura_message_client",
+]
+
+[tool.setuptools]
+py-modules = ["app", "main"]
+
+[tool.setuptools.packages.find]
+exclude = ["ui*", "bentley_0_2_12*"]

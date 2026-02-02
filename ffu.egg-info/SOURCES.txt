@@ -1,0 +1,9 @@
+README.md
+app.py
+main.py
+pyproject.toml
+ffu.egg-info/PKG-INFO
+ffu.egg-info/SOURCES.txt
+ffu.egg-info/dependency_links.txt
+ffu.egg-info/requires.txt
+ffu.egg-info/top_level.txt
