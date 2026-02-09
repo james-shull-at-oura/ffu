@@ -39,8 +39,6 @@ uv pip install -r requirements.txt
 uv run python app.py
 ```
 
-(Add the package that provides `PlatformController`, e.g. `platform_controller` or `pyring`, to `requirements.txt` or install it with `uv pip install <package>` before running.)
-
 # Run the app (without uv)
 
 Install dependencies (including the package that provides `PlatformController`, e.g. `platform_controller` or `pyring`), then:
@@ -51,4 +49,11 @@ python app.py
 ```
 
 The pywebview window lets you set firmware path, version, target name, hw_id, and timeout (defaults are pre-filled), then run the DFU and see progress from the progress callback.
+
+# Build for macOS
+A **manually triggered** GitHub Actions workflow builds a macOS `.app` bundle:
+- In the repo: **Actions** → **Build macOS app** → **Run workflow**.
+- The built app is uploaded as an artifact (`Factory-Firmware-Updater-macOS`).
+
+To build locally on a Mac: install dependencies and [py2app](https://py2app.readthedocs.io/), then run `python setup_macos.py py2app`. The `.app` is created in `dist/`.
 

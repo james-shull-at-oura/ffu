@@ -1,0 +1,41 @@
+# Manually triggered workflow to build the Factory Firmware Updater .app for macOS.
+# Trigger: Actions → Build macOS app → Run workflow
+
+name: Build macOS app
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync
+        env:
+          # If your project uses a private git dependency, add a token:
+          # UV_GIT_OAUTH_TOKEN: ${{ secrets.GH_PAT }}
+          UV_KEYRING_PROVIDER: disabled
+
+      - name: Install py2app
+        run: uv pip install py2app
+
+      - name: Build .app with py2app
+        run: python setup_macos.py py2app
+
+      - name: Upload macOS app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Factory-Firmware-Updater-macOS
+          path: dist/*.app

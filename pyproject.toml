@@ -1,7 +1,7 @@
 [project]
 name = "ffu"
 version = "0.1.0"
-description = "Add your description here"
+description = "Tool to update from Oura factory firmware"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
