@@ -166,6 +166,10 @@ A single workflow `.github/workflows/build-macos.yml`:
 
 The ring's BLE name is discovered with `pyring-ORT`. The default prefix is `oura_`.
 
+## Windows Environment
+
+- **PowerShell is blocked by IT** – do not use `powershell` or `pwsh` on Windows. Use `cmd.exe` instead (or WSL if available).
+
 ## Common Pitfalls
 
 - **`PlatformController` not found:** The package providing it (`platform_controller` or `pyring`) is an internal Oura package not listed in `requirements.txt`. Install it separately.
